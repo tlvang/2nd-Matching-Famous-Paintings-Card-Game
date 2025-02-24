@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match the Cards</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap');
+        
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+        }
+        .container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 70px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 50px;
+            position: relative;
+        }
+        .card {
+            width: 70px;
+            height: 90px;
+            background-image: url('card-back.png');
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        .matched {
+            animation: flyToTopCenter 0.8s forwards;
+        }
+        @keyframes flyToTopCenter {
+            to {
+                transform: translate(0, -200px) scale(0);
+                opacity: 0;
+            }
+        }
+        .museum {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: none;
+            font-family: 'Raleway', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">Turns: <span id="turnCounter">0</span></div>
+    <img src="museum.png" alt="Art Museum" class="museum">
+    <div class="container">
+        <div class="grid" id="gameBoard"></div>
+    </div>
+    <div class="message" id="winMessage">Thank you for playing</div>
+
+    <script>
+        const icons = [
+    'your-image-url-1.png', 'your-image-url-2.png', 'your-image-url-3.png', 'your-image-url-4.png', 'your-image-url-5.png',
+    'your-image-url-6.png', 'your-image-url-7.png', 'your-image-url-8.png', 'your-image-url-9.png', 'your-image-url-10.png'
+];
+        let pairs, selected, turns;
+
+        function updateTurnCounter() {
+            document.getElementById("turnCounter").textContent = turns;
+        }
+
+        function createBoard() {
+            const board = document.getElementById("gameBoard");
+            board.innerHTML = "";
+            pairs = [...icons, ...icons].sort(() => Math.random() - 0.5);
+            selected = [];
+            turns = 0;
+            updateTurnCounter();
+
+            pairs.forEach((icon, index) => {
+                const card = document.createElement("div");
+                card.classList.add("card");
+                card.dataset.index = index;
+                card.onclick = () => flipCard(card, index);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard(card, index) {
+            if (selected.length < 2 && !card.classList.contains("matched")) {
+                card.style.backgroundImage = `url('${pairs[index]}')`; card.style.backgroundSize = 'cover'; card.textContent = '';
+                card.style.backgroundImage = "none";
+                selected.push({ card, index });
+            }
+
+            if (selected.length === 2) {
+                turns++;
+                updateTurnCounter();
+                setTimeout(checkMatch, 800);
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = selected;
+            if (pairs[first.index] === pairs[second.index]) {
+                first.card.classList.add("matched");
+                second.card.classList.add("matched");
+                first.card.onclick = null;
+                second.card.onclick = null;
+            } else {
+                first.card.textContent = "";
+                second.card.textContent = "";
+                first.card.style.backgroundImage = "url('card-back.png')";
+                second.card.style.backgroundImage = "url('card-back.png')";
+            }
+            selected = [];
+
+            if (document.querySelectorAll(".card:not(.matched)").length === 0) {
+                displayWinMessage();
+            }
+        }
+
+        function displayWinMessage() {
+            const message = document.getElementById("winMessage");
+            message.style.display = "block";
+            setTimeout(() => {
+                message.style.display = "none";
+                createBoard();
+            }, 5000);
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
